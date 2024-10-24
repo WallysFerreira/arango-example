@@ -1,6 +1,7 @@
 package org.example.infrastructure.config;
 
 import com.arangodb.ArangoDB;
+import com.arangodb.ArangoDBException;
 import org.example.model.exceptions.EnvironmentVariableNotSetException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,9 +23,14 @@ public class DatabaseConfig {
         int port = Integer.parseInt(getEnv("DB_PORT"));
         String user = getEnv("DB_USER");
 
-        return new ArangoDB.Builder()
-                .host(host, port)
-                .user(user)
-                .build();
+        try {
+            return new ArangoDB.Builder()
+                    .host(host, port)
+                    .user(user)
+                    .build();
+        } catch (ArangoDBException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
     }
 }
