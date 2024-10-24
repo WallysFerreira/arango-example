@@ -1,0 +1,6 @@
+db._create("sessions")
+db.sessions.ensureIndex({
+    type: "ttl",
+    fields: ["lastModifiedAt"],
+    expireAfter: 60
+  });

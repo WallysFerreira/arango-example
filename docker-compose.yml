@@ -7,11 +7,18 @@ services:
       DB_USER: root
     depends_on:
       users-db:
-        condition: service_started
+        condition: service_healthy
   users-db:
     image: arangodb:3.11
     environment:
       ARANGO_NO_AUTH: 1
     ports:
       - 8529:8529
+    volumes:
+      - ./users/initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
+      - ./users/initdb.aql:/docker-entrypoint-initdb.d/initdb.aql
+    healthcheck:
+      test: ["CMD", "arangosh", "--server.authentication", "false", "--javascript.execute-string", "db._version()"]
+      interval: 2s
+      retries: 2
 
