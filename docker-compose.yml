@@ -1,6 +1,13 @@
 services:
   users:
     build: users/
+    environment:
+      DB_HOST: users-db
+      DB_PORT: 8529
+      DB_USER: root
+    depends_on:
+      users-db:
+        condition: service_started
   users-db:
     image: arangodb:3.11
     environment:
