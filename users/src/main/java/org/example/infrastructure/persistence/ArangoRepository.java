@@ -14,6 +14,6 @@ public class ArangoRepository {
     }
 
     public void testConnection() {
-        System.out.println(arangoDB.getServerId());
+        System.out.println(arangoDB.getDatabases().iterator().next());
     }
 }
