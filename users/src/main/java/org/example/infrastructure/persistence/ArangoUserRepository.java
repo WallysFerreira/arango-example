@@ -59,7 +59,13 @@ public class ArangoUserRepository implements UserRepository {
 
     @Override
     public User getUser(String id) {
-        return usersCollection.getDocument(id, User.class);
+        User foundUser = usersCollection.getDocument(id, User.class);
+
+        if (foundUser == null) {
+            throw new UserNotFoundException(id);
+        }
+
+        return foundUser;
     }
 }
 

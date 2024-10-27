@@ -118,4 +118,9 @@ public class ArangoUserRepositoryTest {
         assertThat(foundUser, is(expectedUser));
     }
 
+    @Test(expected = UserNotFoundException.class)
+    public void throwsExceptionWhenTryingToGetUserNotFound() {
+        repository.getUser("Idonotexist");
+    }
+
 }
