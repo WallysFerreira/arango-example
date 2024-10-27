@@ -19,6 +19,6 @@ services:
       - ./users/initdb.aql:/docker-entrypoint-initdb.d/initdb.aql
     healthcheck:
       test: ["CMD", "arangosh", "--server.authentication", "false", "--javascript.execute-string", "db._version()"]
-      interval: 2s
-      retries: 2
+      interval: 5s
+      retries: 3
 

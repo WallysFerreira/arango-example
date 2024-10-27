@@ -1,4 +1,4 @@
 package org.example.model;
 
-public record User(String id, LoginDetails loginDetails) {
+public record User(String _key, LoginDetails loginDetails) {
 }
