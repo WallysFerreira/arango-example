@@ -1,9 +1,11 @@
 package ut.example.infrastructure.rest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.infrastructure.rest.UserController;
 import org.example.model.User;
 import org.example.model.UserRepository;
+import org.example.model.exceptions.DuplicateUserException;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -11,7 +13,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static it.example.UserFixture.aUser;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -23,12 +27,13 @@ public class UserControllerTest {
     private final MockMvc mvc = MockMvcBuilders.standaloneSetup(userController).build();
 
     @Test
-    public void createUser() throws Exception {
+    public void createsUser() throws Exception {
         User user = aUser();
-        String userAsString = objectMapper.writeValueAsString(user);
+        String userAsString = userToString(user);
+        assertNotNull(userAsString);
 
         mvc.perform(
-                MockMvcRequestBuilders.post("/")
+                MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(userAsString)
                 )
@@ -40,4 +45,30 @@ public class UserControllerTest {
         verify(repository).addUser(user);
     }
 
+    @Test
+    public void dealsWithCreatingDuplicatedUser() throws Exception {
+        User user = aUser();
+        String userAsString = userToString(user);
+        assertNotNull(userAsString);
+
+        doThrow(DuplicateUserException.class).when(repository).addUser(user);
+
+        mvc.perform(
+                MockMvcRequestBuilders.post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(userAsString)
+        )
+                .andDo(print())
+                .andExpect(status().is4xxClientError())
+                .andExpect(content().string(new DuplicateUserException(user._key()).getMessage()));
+    }
+
+    private String userToString(User user) {
+        try {
+            return objectMapper.writeValueAsString(user);
+        } catch (JsonProcessingException e) {
+            System.out.println("Error parsing user to string");
+            return null;
+        }
+    }
 }

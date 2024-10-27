@@ -2,12 +2,12 @@ package org.example.infrastructure.rest;
 
 import org.example.model.User;
 import org.example.model.UserRepository;
+import org.example.model.exceptions.DuplicateUserException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class UserController {
@@ -18,13 +18,26 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
-    @PostMapping("/")
-    public ResponseEntity<User> createUser(@RequestBody  User user) {
-        userRepository.addUser(user);
+    @PostMapping("/users")
+    public ResponseEntity<?> createUser(@RequestBody  User user) {
+        try {
+            userRepository.addUser(user);
 
-        return ResponseEntity
-                .status(201)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(user);
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(user);
+
+        } catch (DuplicateUserException e) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("User with key " + user._key() + " already exists.");
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(e.toString());
+        }
     }
 }
