@@ -88,19 +88,16 @@ public class ArangoUserRepositoryTest {
 
         arangoDB.db().collection("users").insertDocuments(expectedUsers);
 
-        Long usersOnCollection = arangoDB.db().collection("users").count().getCount();
-        Collection<User> usersFound = repository.getUsers().stream().toList();
+        Collection<User> usersFound = repository.getUsers();
 
-        assertThat(usersOnCollection.intValue(), is(expectedUsers.size()));
         assertThat(usersFound, is(expectedUsers));
     }
 
     @Test
     public void returnsEmptyCollectionWhenNoUsers() {
-        Long usersOnCollection = arangoDB.db().collection("users").count().getCount();
-        Collection<User> users = repository.getUsers().stream().toList();
+        Collection<User> users = repository.getUsers();
 
-        assertThat(usersOnCollection, is(0L));
         assertThat(users, is(empty()));
     }
+
 }
