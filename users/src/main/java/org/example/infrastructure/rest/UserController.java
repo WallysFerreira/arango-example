@@ -3,6 +3,7 @@ package org.example.infrastructure.rest;
 import org.example.model.User;
 import org.example.model.UserRepository;
 import org.example.model.exceptions.DuplicateUserException;
+import org.example.model.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("user")
 public class UserController {
     private final UserRepository userRepository;
 
@@ -18,7 +20,7 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
-    @PostMapping("/users")
+    @PostMapping
     public ResponseEntity<?> createUser(@RequestBody  User user) {
         try {
             userRepository.addUser(user);
@@ -39,5 +41,19 @@ public class UserController {
                     .contentType(MediaType.TEXT_PLAIN)
                     .body(e.toString());
         }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable("id") String id) {
+        try {
+            userRepository.deleteUser(id);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (UserNotFoundException e) {
+            return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.TEXT_PLAIN)
+                .body("User with key " + id + " was not found");
+        }
+
     }
 }

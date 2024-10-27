@@ -6,6 +6,7 @@ import org.example.infrastructure.rest.UserController;
 import org.example.model.User;
 import org.example.model.UserRepository;
 import org.example.model.exceptions.DuplicateUserException;
+import org.example.model.exceptions.UserNotFoundException;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,7 +34,7 @@ public class UserControllerTest {
         assertNotNull(userAsString);
 
         mvc.perform(
-                MockMvcRequestBuilders.post("/users")
+                MockMvcRequestBuilders.post("/user")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(userAsString)
                 )
@@ -54,13 +55,35 @@ public class UserControllerTest {
         doThrow(DuplicateUserException.class).when(repository).addUser(user);
 
         mvc.perform(
-                MockMvcRequestBuilders.post("/users")
+                MockMvcRequestBuilders.post("/user")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(userAsString)
         )
-                .andDo(print())
                 .andExpect(status().is4xxClientError())
                 .andExpect(content().string(new DuplicateUserException(user._key()).getMessage()));
+    }
+
+    @Test
+    public void deletesUser() throws Exception {
+        User user = aUser();
+
+        mvc.perform(
+                MockMvcRequestBuilders.delete("/user/" + user._key())
+        )
+                .andExpect(status().isOk());
+
+        verify(repository).deleteUser(user._key());
+    }
+
+    @Test
+    public void dealsWithDeletingUserThatDoesntExist() throws Exception {
+        doThrow(UserNotFoundException.class).when(repository).deleteUser(anyString());
+
+        mvc.perform(
+                MockMvcRequestBuilders.delete("/user/something" )
+        )
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(new UserNotFoundException("something").getMessage()));
     }
 
     private String userToString(User user) {
