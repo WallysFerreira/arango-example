@@ -5,6 +5,8 @@ services:
       DB_HOST: users-db
       DB_PORT: 8529
       DB_USER: root
+    ports:
+      - 8080:8080
     depends_on:
       users-db:
         condition: service_healthy
