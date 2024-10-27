@@ -14,6 +14,7 @@ import static it.example.UserFixture.aUser;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.Assert.assertNull;
 
 public class ArangoUserRepositoryTest {
     @Rule
@@ -54,5 +55,20 @@ public class ArangoUserRepositoryTest {
 
         repository.addUser(user);
         repository.addUser(user);
+    }
+
+    @Test
+    public void testDeletesUser() {
+        User user = aUser();
+
+        arangoDB.db().collection("users").insertDocument(user);
+
+        repository.deleteUser(user._key());
+
+        Long usersOnCollection = arangoDB.db().collection("users").count().getCount();
+        User foundUser = arangoDB.db().collection("users").getDocument(user._key(), User.class);
+
+        assertThat(usersOnCollection, is(0L));
+        assertNull(foundUser);
     }
 }
