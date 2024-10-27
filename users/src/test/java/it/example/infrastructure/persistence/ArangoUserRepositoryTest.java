@@ -11,9 +11,13 @@ import org.junit.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import java.util.Collection;
+
 import static it.example.UserFixture.aUser;
+import static it.example.UserFixture.someUsers;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertNull;
 
@@ -76,5 +80,27 @@ public class ArangoUserRepositoryTest {
     @Test(expected = UserNotFoundException.class)
     public void throwsExceptionWhenTryingToDeleteUserNotFound() {
         repository.deleteUser("Idonotexist");
+    }
+
+    @Test
+    public void returnsAllUsers() {
+        Collection<User> expectedUsers = someUsers();
+
+        arangoDB.db().collection("users").insertDocuments(expectedUsers);
+
+        Long usersOnCollection = arangoDB.db().collection("users").count().getCount();
+        Collection<User> usersFound = repository.getUsers().stream().toList();
+
+        assertThat(usersOnCollection.intValue(), is(expectedUsers.size()));
+        assertThat(usersFound, is(expectedUsers));
+    }
+
+    @Test
+    public void returnsEmptyCollectionWhenNoUsers() {
+        Long usersOnCollection = arangoDB.db().collection("users").count().getCount();
+        Collection<User> users = repository.getUsers().stream().toList();
+
+        assertThat(usersOnCollection, is(0L));
+        assertThat(users, is(empty()));
     }
 }

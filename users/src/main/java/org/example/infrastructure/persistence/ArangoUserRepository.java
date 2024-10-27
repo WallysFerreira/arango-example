@@ -1,21 +1,21 @@
 package org.example.infrastructure.persistence;
 
-import com.arangodb.ArangoCollection;
-import com.arangodb.ArangoDB;
-import com.arangodb.ArangoDBException;
+import com.arangodb.*;
 import org.example.model.LoginDetails;
 import org.example.model.User;
 import org.example.model.UserRepository;
 import org.example.model.exceptions.DuplicateUserException;
 import org.example.model.exceptions.UserNotFoundException;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 public class ArangoUserRepository implements UserRepository {
     private static final Integer UNIQUE_CONSTRAINT_VIOLATED_ERR = 1210;
     private static final Integer DOCUMENT_NOT_FOUND_ERR = 1202;
 
+    private static final String GET_ALL_DOCUMENTS_QUERY = "FOR u IN users RETURN u";
+
+    private final ArangoDatabase db;
     private final ArangoCollection usersCollection;
 
     public ArangoUserRepository(ArangoDB arango) {
@@ -23,6 +23,7 @@ public class ArangoUserRepository implements UserRepository {
             arango.db().createCollection("users");
         }
 
+        db = arango.db();
         usersCollection = arango.db().collection("users");
     }
 
@@ -54,7 +55,7 @@ public class ArangoUserRepository implements UserRepository {
 
     @Override
     public Collection<User> getUsers() {
-        return new ArrayList<>();
+        return db.query(GET_ALL_DOCUMENTS_QUERY, User.class).asListRemaining();
     }
 
     @Override
