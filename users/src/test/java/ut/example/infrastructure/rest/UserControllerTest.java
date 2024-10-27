@@ -13,10 +13,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+
 import static it.example.UserFixture.aUser;
+import static it.example.UserFixture.someUsers;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -119,9 +123,50 @@ public class UserControllerTest {
 
     }
 
+    @Test
+    public void getsAllUsers() throws Exception {
+        Collection<User> users = someUsers();
+        String usersAsString = usersToString(users);
+        assertNotNull(usersAsString);
+
+        doReturn(users).when(repository).getUsers();
+
+        mvc.perform(
+                MockMvcRequestBuilders.get("/user")
+        )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().string(usersAsString));
+
+        verify(repository).getUsers();
+    }
+
+    @Test
+    public void returnsEmptyListWhenNoUsers() throws Exception {
+        doReturn(List.of()).when(repository).getUsers();
+
+        mvc.perform(
+                MockMvcRequestBuilders.get("/user")
+        )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().string(Objects.requireNonNull(usersToString(List.of()))));
+
+        verify(repository).getUsers();
+    }
+
     private String userToString(User user) {
         try {
             return objectMapper.writeValueAsString(user);
+        } catch (JsonProcessingException e) {
+            System.out.println("Error parsing user to string");
+            return null;
+        }
+    }
+
+    private String usersToString(Collection<User> users) {
+        try {
+            return objectMapper.writeValueAsString(users);
         } catch (JsonProcessingException e) {
             System.out.println("Error parsing user to string");
             return null;

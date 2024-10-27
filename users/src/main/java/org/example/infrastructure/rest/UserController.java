@@ -10,6 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
+
 @RestController
 @RequestMapping("user")
 public class UserController {
@@ -67,6 +69,15 @@ public class UserController {
             return userNotfoundResponse(id);
         }
     }
+
+    @GetMapping
+    public ResponseEntity<Collection<User>> getUsers() {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(userRepository.getUsers());
+    }
+
 
     private ResponseEntity<?> userNotfoundResponse(String id) {
         return ResponseEntity
