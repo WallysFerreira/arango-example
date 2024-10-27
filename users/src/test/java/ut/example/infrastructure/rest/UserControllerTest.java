@@ -60,6 +60,7 @@ public class UserControllerTest {
                         .content(userAsString)
         )
                 .andExpect(status().is4xxClientError())
+                .andExpect(content().contentType(MediaType.TEXT_PLAIN))
                 .andExpect(content().string(new DuplicateUserException(user._key()).getMessage()));
     }
 
@@ -83,7 +84,39 @@ public class UserControllerTest {
                 MockMvcRequestBuilders.delete("/user/something" )
         )
                 .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.TEXT_PLAIN))
                 .andExpect(content().string(new UserNotFoundException("something").getMessage()));
+    }
+
+    @Test
+    public void getUser() throws Exception {
+        User user = aUser();
+        String userAsString = userToString(user);
+        assertNotNull(userAsString);
+
+        doReturn(user).when(repository).getUser(user._key());
+
+        mvc.perform(
+                MockMvcRequestBuilders.get("/user/" + user._key())
+        )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().string(userAsString));
+
+        verify(repository).getUser(user._key());
+    }
+
+    @Test
+    public void dealsWithGettingUserNotFound() throws Exception {
+        doThrow(UserNotFoundException.class).when(repository).getUser(anyString());
+
+        mvc.perform(
+                MockMvcRequestBuilders.get("/user/something")
+        )
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.TEXT_PLAIN))
+                .andExpect(content().string(new UserNotFoundException("something").getMessage()));
+
     }
 
     private String userToString(User user) {

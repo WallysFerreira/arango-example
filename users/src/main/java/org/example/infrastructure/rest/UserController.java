@@ -49,11 +49,29 @@ public class UserController {
             userRepository.deleteUser(id);
             return ResponseEntity.status(HttpStatus.OK).build();
         } catch (UserNotFoundException e) {
+            return userNotfoundResponse(id);
+        }
+
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUser(@PathVariable("id") String id) {
+        try {
+            User userFounnd = userRepository.getUser(id);
+
             return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(userFounnd);
+        } catch (UserNotFoundException e) {
+            return userNotfoundResponse(id);
+        }
+    }
+
+    private ResponseEntity<?> userNotfoundResponse(String id) {
+        return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .contentType(MediaType.TEXT_PLAIN)
                 .body("User with key " + id + " was not found");
-        }
-
     }
 }
