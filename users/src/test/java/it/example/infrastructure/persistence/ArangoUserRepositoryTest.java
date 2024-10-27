@@ -4,6 +4,7 @@ import com.arangodb.ArangoDB;
 import org.example.infrastructure.persistence.ArangoUserRepository;
 import org.example.model.User;
 import org.example.model.exceptions.DuplicateUserException;
+import org.example.model.exceptions.UserNotFoundException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,5 +71,10 @@ public class ArangoUserRepositoryTest {
 
         assertThat(usersOnCollection, is(0L));
         assertNull(foundUser);
+    }
+
+    @Test(expected = UserNotFoundException.class)
+    public void throwsExceptionWhenTryingToDeleteUserNotFound() {
+        repository.deleteUser("Idonotexist");
     }
 }
