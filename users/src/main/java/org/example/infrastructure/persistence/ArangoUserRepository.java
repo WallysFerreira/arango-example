@@ -1,7 +1,6 @@
 package org.example.infrastructure.persistence;
 
 import com.arangodb.*;
-import org.example.model.LoginDetails;
 import org.example.model.User;
 import org.example.model.UserRepository;
 import org.example.model.exceptions.DuplicateUserException;

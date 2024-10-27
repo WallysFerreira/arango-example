@@ -2,7 +2,6 @@ package it.example.infrastructure.persistence;
 
 import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDB;
-import com.arangodb.ArangoDatabase;
 import org.example.infrastructure.persistence.ArangoUserRepository;
 import org.example.model.User;
 import org.example.model.exceptions.DuplicateUserException;
