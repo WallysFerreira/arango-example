@@ -60,7 +60,7 @@ public class ArangoUserRepository implements UserRepository {
 
     @Override
     public User getUser(String id) {
-        return new User("a", new LoginDetails("b", "c"));
+        return usersCollection.getDocument(id, User.class);
     }
 }
 

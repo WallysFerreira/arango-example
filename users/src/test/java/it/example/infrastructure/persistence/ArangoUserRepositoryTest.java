@@ -1,17 +1,18 @@
 package it.example.infrastructure.persistence;
 
+import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDB;
+import com.arangodb.ArangoDatabase;
 import org.example.infrastructure.persistence.ArangoUserRepository;
 import org.example.model.User;
 import org.example.model.exceptions.DuplicateUserException;
 import org.example.model.exceptions.UserNotFoundException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import java.util.Collection;
+import java.util.List;
 
 import static it.example.UserFixture.aUser;
 import static it.example.UserFixture.someUsers;
@@ -22,22 +23,28 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertNull;
 
 public class ArangoUserRepositoryTest {
-    @Rule
-    public GenericContainer container = new GenericContainer(DockerImageName.parse("arangodb:3.11"))
+    @ClassRule
+    public static GenericContainer container = new GenericContainer(DockerImageName.parse("arangodb:3.11"))
             .withExposedPorts(8529)
             .withEnv("ARANGO_NO_AUTH", "1");
 
-    private ArangoDB arangoDB;
-    private ArangoUserRepository repository;
+    private static ArangoCollection usersCollection;
+    private static ArangoUserRepository repository;
+
+    @BeforeClass
+    public static void setUp() {
+            ArangoDB arangoDB = new ArangoDB.Builder()
+                    .host(container.getHost(), container.getMappedPort(8529))
+                    .user("root")
+                    .build();
+
+            usersCollection = arangoDB.db().collection("users");
+            repository = new ArangoUserRepository(arangoDB);
+    }
 
     @Before
-    public void setUp() {
-        arangoDB = new ArangoDB.Builder()
-                .host(container.getHost(), container.getMappedPort(8529))
-                .user("root")
-                .build();
-
-        repository = new ArangoUserRepository(arangoDB);
+    public void clearCollection() {
+        usersCollection.truncate();
     }
 
     @Test
@@ -46,8 +53,8 @@ public class ArangoUserRepositoryTest {
 
         repository.addUser(expectedUser);
 
-        Long usersOnCollection = arangoDB.db().collection("users").count().getCount();
-        User actualUser = arangoDB.db().collection("users").getDocument(expectedUser._key(), User.class);
+        Long usersOnCollection = usersCollection.count().getCount();
+        User actualUser = usersCollection.getDocument(expectedUser._key(), User.class);
 
 
         assertThat(usersOnCollection, is(greaterThanOrEqualTo(1L)));
@@ -66,12 +73,12 @@ public class ArangoUserRepositoryTest {
     public void testDeletesUser() {
         User user = aUser();
 
-        arangoDB.db().collection("users").insertDocument(user);
+        usersCollection.insertDocument(user);
 
         repository.deleteUser(user._key());
 
-        Long usersOnCollection = arangoDB.db().collection("users").count().getCount();
-        User foundUser = arangoDB.db().collection("users").getDocument(user._key(), User.class);
+        Long usersOnCollection = usersCollection.count().getCount();
+        User foundUser = usersCollection.getDocument(user._key(), User.class);
 
         assertThat(usersOnCollection, is(0L));
         assertNull(foundUser);
@@ -86,7 +93,7 @@ public class ArangoUserRepositoryTest {
     public void returnsAllUsers() {
         Collection<User> expectedUsers = someUsers();
 
-        arangoDB.db().collection("users").insertDocuments(expectedUsers);
+        usersCollection.insertDocuments(expectedUsers);
 
         Collection<User> usersFound = repository.getUsers();
 
@@ -98,6 +105,18 @@ public class ArangoUserRepositoryTest {
         Collection<User> users = repository.getUsers();
 
         assertThat(users, is(empty()));
+    }
+
+    @Test
+    public void getsUser() {
+        List<User> users = someUsers();
+        User expectedUser = users.get(1);
+
+        usersCollection.insertDocuments(users);
+
+        User foundUser = repository.getUser(expectedUser._key());
+
+        assertThat(foundUser, is(expectedUser));
     }
 
 }
