@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.lessThan;
 
@@ -44,4 +45,11 @@ public class SessionTest {
         assertThat(oldSessionSecret, is(newSessionSecret));
     }
 
+    @Test
+    public void differentSessionsHaveDifferentSecrets() {
+        Session session1 = new Session("user1");
+        Session session2 = new Session("user2");
+
+        assertThat(session1.sessionSecret(), is(not(session2.sessionSecret())));
+    }
 }
