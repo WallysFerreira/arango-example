@@ -6,6 +6,8 @@ import com.arangodb.ArangoDBException;
 import com.arangodb.ArangoDatabase;
 import org.example.model.Session;
 import org.example.model.SessionRepository;
+import org.example.model.exceptions.SessionDoesNotExistException;
+import org.example.model.exceptions.UserNotFoundException;
 
 public class ArangoSessionRepository implements SessionRepository {
     private static final Integer UNIQUE_CONSTRAINT_VIOLATED_ERR = 1210;
@@ -36,8 +38,13 @@ public class ArangoSessionRepository implements SessionRepository {
     }
 
     @Override
-    public void extendSession(String userId) {
+    public void extendSession(String userId) throws UserNotFoundException {
         Session fetchedSession = fetchSession(userId);
+
+        if (fetchedSession == null) {
+            throw new SessionDoesNotExistException(userId);
+        }
+
         fetchedSession.updateLastModified();
         sessionsCollection.updateDocument(userId, fetchedSession);
     }
@@ -45,6 +52,10 @@ public class ArangoSessionRepository implements SessionRepository {
     @Override
     public boolean sessionSecretMatches(String userId, String sessionSecret) {
         Session session = fetchSession(userId);
+
+        if (session == null) {
+            throw new SessionDoesNotExistException(userId);
+        }
 
         return session.sessionSecret().equals(sessionSecret);
     }

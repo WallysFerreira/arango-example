@@ -6,6 +6,8 @@ import com.arangodb.model.TtlIndexOptions;
 import org.example.infrastructure.persistence.ArangoSessionRepository;
 import org.example.model.Session;
 import org.example.model.SessionRepository;
+import org.example.model.exceptions.SessionDoesNotExistException;
+import org.example.model.exceptions.UserNotFoundException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -102,6 +104,11 @@ public class ArangoSessionRepositoryTest {
         assertThat(newLastModifiedAt, is(greaterThan(oldLastModifiedAt)));
     }
 
+    @Test(expected = SessionDoesNotExistException.class)
+    public void extendSessionDealsWithNonExistentSession() {
+        repository.extendSession("doesnotexist");
+    }
+
     @Test
     public void correctlyChecksSessionSecrets() {
         Session session = new Session(USER_ID).withSessionSecret("1234poiu");
@@ -110,5 +117,10 @@ public class ArangoSessionRepositoryTest {
 
         assertTrue(repository.sessionSecretMatches(USER_ID, "1234poiu"));
         assertFalse(repository.sessionSecretMatches(USER_ID, "notit"));
+    }
+
+    @Test(expected = SessionDoesNotExistException.class)
+    public void sessionSecretMatchesDealsWithNonExistentSession() {
+        repository.sessionSecretMatches(USER_ID, "someSecret");
     }
 }
