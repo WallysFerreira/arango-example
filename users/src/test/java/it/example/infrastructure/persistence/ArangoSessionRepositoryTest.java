@@ -18,7 +18,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class ArangoSessionRepositoryTest {
     private static final Integer TTL = 3;
@@ -76,5 +76,13 @@ public class ArangoSessionRepositoryTest {
         int sessionsOnCollection = sessionsCollection.count().getCount().intValue();
 
         assertThat(sessionsOnCollection, is(1));
+    }
+
+    @Test
+    public void checksThatUserHasSessionAlive() {
+        sessionsCollection.insertDocument(new Session(USER_ID));
+
+        assertTrue(repository.userHasSessionAlive(USER_ID));
+        assertFalse(repository.userHasSessionAlive("otherUser"));
     }
 }

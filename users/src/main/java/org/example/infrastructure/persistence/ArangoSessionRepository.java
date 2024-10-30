@@ -32,7 +32,7 @@ public class ArangoSessionRepository implements SessionRepository {
 
     @Override
     public boolean userHasSessionAlive(String userId) {
-        return false;
+        return sessionsCollection.documentExists(userId);
     }
 
     @Override
