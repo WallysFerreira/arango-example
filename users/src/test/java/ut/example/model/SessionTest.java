@@ -34,7 +34,7 @@ public class SessionTest {
 
         Thread.sleep(Duration.ofSeconds(1));
 
-        startingSession.extendTimeToLive();
+        startingSession.updateLastModified();
 
         Long newLastModified = startingSession.lastModifiedAt();
         String newUserId = startingSession.userId();

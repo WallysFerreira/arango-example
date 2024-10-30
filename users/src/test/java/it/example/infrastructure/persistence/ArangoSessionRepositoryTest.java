@@ -17,6 +17,7 @@ import java.time.Duration;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
@@ -84,5 +85,20 @@ public class ArangoSessionRepositoryTest {
 
         assertTrue(repository.userHasSessionAlive(USER_ID));
         assertFalse(repository.userHasSessionAlive("otherUser"));
+    }
+
+    @Test
+    public void updatesLastModifiedWhenExtendingSession() throws InterruptedException {
+        Session session = new Session(USER_ID);
+        Long oldLastModifiedAt = session.lastModifiedAt();
+
+        sessionsCollection.insertDocument(session);
+
+        Thread.sleep(Duration.ofSeconds(1));
+        repository.extendSession(USER_ID);
+
+        Long newLastModifiedAt = sessionsCollection.getDocument(USER_ID, Session.class).lastModifiedAt();
+
+        assertThat(newLastModifiedAt, is(greaterThan(oldLastModifiedAt)));
     }
 }

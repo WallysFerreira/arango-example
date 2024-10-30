@@ -37,5 +37,10 @@ public class ArangoSessionRepository implements SessionRepository {
 
     @Override
     public void extendSession(String userId) {
+        Session fetchedSession = sessionsCollection.getDocument(userId, Session.class);
+
+        fetchedSession.updateLastModified();
+
+        sessionsCollection.updateDocument(userId, fetchedSession);
     }
 }

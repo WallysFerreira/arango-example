@@ -42,7 +42,7 @@ public class Session {
         return sessionSecret;
     }
 
-    public void extendTimeToLive() {
+    public void updateLastModified() {
         this.lastModifiedAt = getNowInSeconds();
     }
 
