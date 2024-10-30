@@ -37,10 +37,19 @@ public class ArangoSessionRepository implements SessionRepository {
 
     @Override
     public void extendSession(String userId) {
-        Session fetchedSession = sessionsCollection.getDocument(userId, Session.class);
-
+        Session fetchedSession = fetchSession(userId);
         fetchedSession.updateLastModified();
-
         sessionsCollection.updateDocument(userId, fetchedSession);
+    }
+
+    @Override
+    public boolean sessionSecretMatches(String userId, String sessionSecret) {
+        Session session = fetchSession(userId);
+
+        return session.sessionSecret().equals(sessionSecret);
+    }
+
+    private Session fetchSession(String userId) {
+        return sessionsCollection.getDocument(userId, Session.class);
     }
 }

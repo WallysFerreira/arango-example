@@ -13,7 +13,7 @@ public class Session {
     private final String userId;
 
     @JsonProperty("sessionSecret")
-    private final String sessionSecret;
+    private String sessionSecret;
 
     @JsonProperty("lastModifiedAt")
     private Long lastModifiedAt;
@@ -44,6 +44,12 @@ public class Session {
 
     public void updateLastModified() {
         this.lastModifiedAt = getNowInSeconds();
+    }
+
+    public Session withSessionSecret(String sessionSecret) {
+        this.sessionSecret = sessionSecret;
+
+        return this;
     }
 
     private Long getNowInSeconds() {

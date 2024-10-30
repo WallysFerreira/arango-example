@@ -101,4 +101,14 @@ public class ArangoSessionRepositoryTest {
 
         assertThat(newLastModifiedAt, is(greaterThan(oldLastModifiedAt)));
     }
+
+    @Test
+    public void correctlyChecksSessionSecrets() {
+        Session session = new Session(USER_ID).withSessionSecret("1234poiu");
+
+        sessionsCollection.insertDocument(session);
+
+        assertTrue(repository.sessionSecretMatches(USER_ID, "1234poiu"));
+        assertFalse(repository.sessionSecretMatches(USER_ID, "notit"));
+    }
 }

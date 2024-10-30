@@ -4,4 +4,5 @@ public interface SessionRepository {
     void saveSession(String userId);
     boolean userHasSessionAlive(String userId);
     void extendSession(String userId);
+    boolean sessionSecretMatches(String userId, String sessionSecret);
 }
