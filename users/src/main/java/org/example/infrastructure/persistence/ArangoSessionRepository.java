@@ -21,15 +21,20 @@ public class ArangoSessionRepository implements SessionRepository {
     }
 
     @Override
-    public void saveSession(String userId) {
+    public String saveSession(String userId) {
+        Session session = new Session(userId);
+        String sessionSecret = session.sessionSecret();
+
         try {
-            sessionsCollection.insertDocument(new Session(userId));
+            sessionsCollection.insertDocument(session);
         } catch (ArangoDBException e) {
             if (e.getErrorNum().equals(UNIQUE_CONSTRAINT_VIOLATED_ERR)) {
                 sessionsCollection.deleteDocument(userId);
-                saveSession(userId);
+                sessionSecret = saveSession(userId);
             }
         }
+
+        return sessionSecret;
     }
 
     @Override
